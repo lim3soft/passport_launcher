@@ -5,7 +5,7 @@
 <p align="center"><img src="assets/community/0.4.1/cover.png" width="420" alt="Passport Launcher illustrated cover" /></p>
 
 
-[下载 v0.4.1](https://github.com/lim3soft/passport_launcher/releases/tag/v0.4.1) · [社区投稿（待审核）](https://ai-passport.folotoy.cn/plays/1704/) · [界面预览](assets/community/0.4.1/)
+[下载 v0.4.1](https://github.com/lim3soft/passport_launcher/releases/tag/v0.4.1) · [AI-Passport 社区](https://ai-passport.folotoy.cn/plays/1704/) · [界面预览](assets/community/0.4.1/)
 
 **首次安装：** 从 Releases 下载 `Passport-Launcher-0.4.1-fresh.bin` 并写入 **0x0**，会明确清除已有应用和设置。**已有 0.4.0：** 使用较小的 update BIN，关闭整片擦除，并按下方升级步骤操作。封面为示意图，界面截图来自主机渲染。
 

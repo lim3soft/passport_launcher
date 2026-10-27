@@ -5,7 +5,7 @@
 <p align="center"><img src="assets/community/0.4.1/cover.png" width="420" alt="Passport Launcher illustrated cover" /></p>
 
 
-[Download v0.4.1](https://github.com/lim3soft/passport_launcher/releases/tag/v0.4.1) · [Community submission — pending review](https://ai-passport.folotoy.cn/plays/1704/) · [UI previews](assets/community/0.4.1/)
+[Download v0.4.1](https://github.com/lim3soft/passport_launcher/releases/tag/v0.4.1) · [AI-Passport community](https://ai-passport.folotoy.cn/plays/1704/) · [UI previews](assets/community/0.4.1/)
 
 **First installation:** download `Passport-Launcher-0.4.1-fresh.bin` from Releases and flash at **0x0**. It intentionally clears existing apps and settings. **Already on 0.4.0:** use the smaller update BIN with whole-chip erase off, following the steps below. The cover is an illustration; UI captures are host renders.
 

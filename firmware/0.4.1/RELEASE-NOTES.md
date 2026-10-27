@@ -20,7 +20,7 @@ Build and host checks pass: ten C sanitizer executables, 24 Python tests, browse
 
 Application MIT license; dependencies and the brand font retain their own licenses. Full notices are included. Inspired by M5 Launcher.
 
-Community project **1704**, revision **3933**: **pending review**, not yet public: https://ai-passport.folotoy.cn/plays/1704/
+Community project **1704**, revision **3933**: https://ai-passport.folotoy.cn/plays/1704/
 
 ---
 
@@ -34,4 +34,4 @@ Community project **1704**, revision **3933**: **pending review**, not yet publi
 - 网页增加真实上传进度及最终完成确认，移除旧设置导入说明段，增加 GitHub 与底部署名。
 - 选 Install a ROM，用手机或电脑连热点 **Passport Launcher**（密码 **aipassport**），访问 **http://192.168.168.1** 上传兼容本地 `.bin`。
 - 编译／主机检查通过；**本版未做实机测试**。封面为示意图，界面为主机渲染，演示应用未预装。应用 MIT，依赖和字体保留各自许可，完整声明随文件提供。
-- 社区项目 **1704**／版本记录 **3933** 为 **待审核**，并非已公开。
+- 社区项目 **1704**／版本记录 **3933**。
