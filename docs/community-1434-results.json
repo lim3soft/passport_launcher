@@ -1,0 +1,74 @@
+{
+  "community_id": 1434,
+  "title": "neon line desktop",
+  "published_download_url": "https://ai-passport.folotoy.cn/api/download/community/community-71ec1ddf",
+  "file_bytes": 2360704,
+  "file_sha256": "3df828401ba30a5870f938d985d0a716097ecfc61767806c6f3289eb67fc062e",
+  "application_bytes": 2295168,
+  "slot_limit_bytes": 2097152,
+  "application_integrity": "PASS",
+  "partitions": [
+    {
+      "name": "nvs",
+      "type": 1,
+      "subtype": 2,
+      "offset": "0x9000",
+      "size": 24576,
+      "flags": 0
+    },
+    {
+      "name": "phy_init",
+      "type": 1,
+      "subtype": 1,
+      "offset": "0xf000",
+      "size": 4096,
+      "flags": 0
+    },
+    {
+      "name": "factory",
+      "type": 0,
+      "subtype": 0,
+      "offset": "0x10000",
+      "size": 3145728,
+      "flags": 0
+    },
+    {
+      "name": "shows",
+      "type": 1,
+      "subtype": 64,
+      "offset": "0x310000",
+      "size": 65536,
+      "flags": 0
+    },
+    {
+      "name": "cardid",
+      "type": 1,
+      "subtype": 2,
+      "offset": "0x356000",
+      "size": 16384,
+      "flags": 0
+    },
+    {
+      "name": "recovery",
+      "type": 0,
+      "subtype": 32,
+      "offset": "0x700000",
+      "size": 1048576,
+      "flags": 0
+    }
+  ],
+  "version": "1",
+  "idf_version": "v5.5.3",
+  "usb_opened": false,
+  "device_written": false,
+  "metadata_cross_origin_allow_origin_present": false,
+  "download_cross_origin_allow_origin_present": false,
+  "launcher_import": "BLOCKED",
+  "reasons": [
+    "Application exceeds 2097152-byte position limit",
+    "Declares custom shows/cardid/recovery partitions; layout unsupported"
+  ],
+  "available_positions_on_device": "NOT READ",
+  "download_helper_host_model": "PASS",
+  "windows_bookmark_execution": "NOT RUN"
+}

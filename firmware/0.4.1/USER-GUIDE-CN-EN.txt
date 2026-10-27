@@ -1,0 +1,22 @@
+Passport Launcher 0.4.1 / 9W3SPY
+
+首次安装：fresh.bin 写入 0x0，将清除原有应用及设置。
+First install: fresh.bin at 0x0 clears existing apps and settings.
+
+1. 首次安装会清除原有应用和设置。上/下选择、OK确认；长按OK返回启动器上一页。
+2. 选Install a ROM，手机或电脑连热点Passport Launcher（密码aipassport），浏览器打开http://192.168.168.1。
+3. 选兼容的本地.bin，点Install / update；等Installation complete再返回。失败可重选同一文件重试。
+4. 长按OK回菜单，选择应用运行。退出应用用正常重启或断电重启；倒计时按任意键取消自动运行。
+5. Auto start可关闭、跟随上次应用，或在Startup app固定选择另一应用。
+
+1. First installation clears existing apps and settings. Use UP/DOWN to select and OK to confirm; hold OK to go back within the launcher.
+2. Choose Install a ROM. On a phone or computer, join the Passport Launcher hotspot (password: aipassport), then open http://192.168.168.1 in a browser.
+3. Select a compatible local .bin and press Install / update. Wait for Installation complete before returning. If it fails, reselect the same file and retry.
+4. Hold OK to return to the menu and choose an app. Restart or power-cycle to leave an app; press any button during the countdown to cancel automatic startup.
+5. In Auto start, keep startup off, follow the last-booted app, or use Startup app to pin another installed app.
+
+从 0.4.0 升级 / Update from 0.4.0
+先重启并取消自动启动，等待启动器菜单保存当前应用设置，再使用 update.bin 写入 0x0，关闭整片擦除。
+Restart, cancel Auto start and wait for the launcher menu to capture settings; flash update.bin at 0x0 with whole-chip erase OFF.
+
+GitHub: https://github.com/lim3soft/passport_launcher

@@ -1,0 +1,20 @@
+{
+  "audit_date": "2026-10-27",
+  "qso_source_commit": "b4ecee1295dd5ad9d8b1c95e1b5f6f91e5cbd4a2",
+  "device_detected": false,
+  "physical_measurements": false,
+  "ai_passport_source_files": {
+    "docs/hardware-design/specifications.md": "e5055403dc19c8f3dc1825c5c8ce1cc42a71ccc5653448e6a5bf8ff6c3c7ce7d",
+    "components/bsp/include/bsp_pins.h": "d1dce1ad85e7a4406099f59e6fb23b32392932683e881b703d072936a63ff9f2",
+    "components/bsp/src/bsp_display_lvgl.c": "3d7b991004d2cbb8b1799e9f44bc74f20fcd4637928b912edbc2072479664fd6",
+    "sdkconfig.defaults": "92c3563648973213468ce0d6bd5f99158c405080cbd7ac0c813bb8ee5667b128",
+    "sdkconfig": "aee4ea417e0820481c031c5295e55611d65f395068089e1f7305d425347d47e0",
+    "partitions.csv": "950a9b173c54df7b2263e730c41722ef279155a4b6ccb91a17ea7fbb089af3ac",
+    "build/flasher_args.json": "736297ecadd26173c39da593e7a8d28d3f55b1088593f35194d3e1ed315d36a8"
+  },
+  "vendored_nvs_parser": {
+    "source": "ESP-IDF v5.5.3 components/nvs_flash/nvs_partition_tool/nvs_parser.py",
+    "sha256": "621bdbf0ac60e34ae190f63be10f0f1a4dd4d18c25ebab0cf56ff53a6f2b6c2c",
+    "unchanged_copy": true
+  }
+}

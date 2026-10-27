@@ -1,0 +1,36 @@
+name: Publish verified Passport Launcher
+on:
+  push:
+    tags: ['v0.4.1']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, same pinned action as QSO Vision
+        with:
+          persist-credentials: false
+      - name: Verify the exact firmware and release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" == v0.4.1 ]]
+          python3 tools/verify_github_release.py 0.4.1
+      - name: Publish release and upload verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view v0.4.1 >/dev/null 2>&1; then
+            gh release create v0.4.1 --verify-tag --title 'Passport Launcher v0.4.1' \
+              --notes-file firmware/0.4.1/RELEASE-NOTES.md --latest
+          fi
+          gh release upload v0.4.1 firmware/0.4.1/* --clobber

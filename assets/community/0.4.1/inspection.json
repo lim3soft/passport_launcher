@@ -1,0 +1,38 @@
+{
+  "generation_tool": "built-in image_gen.imagegen",
+  "generation_completed": true,
+  "cover_label": "Illustration / \u793a\u610f\u56fe",
+  "screenshots_source": "Production native UI host renderer, not a physical device",
+  "inspected_local_files": [
+    {
+      "file": "cover.png",
+      "sha256": "ad3304ff88770dbe9956eefc8b0b9bda59fa91717925bc1ce44b25a24caa3808",
+      "viewer_inspected": true,
+      "finished_non_placeholder": true
+    },
+    {
+      "file": "library.png",
+      "sha256": "2378f5c7bbe1ac9bb8a04d18b6a2ebd0cd912825d385a066bf397b2dcbc31d83",
+      "viewer_inspected": true,
+      "finished_non_placeholder": true
+    },
+    {
+      "file": "auto-app-picker.png",
+      "sha256": "bd19350ebefc45081eeebcfd34eefc882e466e2535deae3cbdbcc43f231179cf",
+      "viewer_inspected": true,
+      "finished_non_placeholder": true
+    },
+    {
+      "file": "countdown-selected.png",
+      "sha256": "939a27f7f91f6e2aad56c8c3030080206dbd5f124c8aa0aefdd9ed5bb470eb48",
+      "viewer_inspected": true,
+      "finished_non_placeholder": true
+    },
+    {
+      "file": "install.png",
+      "sha256": "40f9bf41996d42f32217fee6d8323cf6996c2c06af68754fef5de4eda5e63258",
+      "viewer_inspected": true,
+      "finished_non_placeholder": true
+    }
+  ]
+}

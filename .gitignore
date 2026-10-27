@@ -1,0 +1,16 @@
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+__pycache__/
+*.pyc
+*.passport
+.agents/
+private/
+*.qso-settings
+
+community-release/
+delivery/*
+!delivery/THIRD-PARTY-NOTICES.txt
+.env
+.env.*

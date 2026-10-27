@@ -1,0 +1,7 @@
+{
+  "generator": "ESP-IDF v5.5.3 nvs_partition_generator wrapper / esp_idf_nvs_partition_gen",
+  "format": "NVS v2",
+  "csv_sha256": "6b21b75cb4f420bf482632b470ef63fb30969509fc2746ffa4b525f847eaafcc",
+  "bin_sha256": "0c54884c8958f87ecb1567fe61ba06cd1ecce7375fad7a85d6cfc2192ae7e790",
+  "contains_real_credentials": false
+}

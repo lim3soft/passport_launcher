@@ -1,0 +1,28 @@
+{
+  "format": "passportos.fresh-install",
+  "version": 1,
+  "firmware_version": "0.1.2",
+  "target": "esp32c3",
+  "flash_size_bytes": 8388608,
+  "file": "PassportOS-0.1.2-fresh-8MB.bin",
+  "write_offset": "0x0",
+  "write_range": "0x000000-0x7fffff",
+  "bytes": 8388608,
+  "sha256": "259c592d3beca37db0100452a80710dbe6ba0fddf33998d433d9ba0517cee7d5",
+  "parent_merged_sha256": "3bf1907b7a712ff044fbed93a85478a419341df8c29a7866156ecced6e1175a4",
+  "parent_bytes": 1406208,
+  "derivation": "byte-identical verified merged image followed by 0xff bytes through the end of 8 MiB flash",
+  "archive": "/root/passportos/build/firmware/259c592d3beca37db0100452a80710dbe6ba0fddf33998d433d9ba0517cee7d5",
+  "matching_elf_sha256": "e13075133f699ce3f6017de535ebade1e634d458b4978978f9c17a7914a99abb",
+  "data_impact": "replaces all existing firmware and persistent data in the 8 MiB flash; first installation only",
+  "user_preference": "fresh installation; no backup or settings export requested",
+  "checks": {
+    "archive_and_embedded_elf_identity": "PASS",
+    "parent_bytes_unchanged": "PASS",
+    "padding_all_ff": "PASS",
+    "launcher_nvs_blank": "PASS",
+    "future_app_metadata_and_private_storage_blank": "PASS"
+  },
+  "physical_device_tests": "NOT RUN",
+  "flashed": false
+}

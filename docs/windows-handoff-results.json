@@ -1,0 +1,16 @@
+{
+  "format": "passportos.windows-handoff-validation",
+  "firmware_version": "0.1.2",
+  "zip_path": "/root/passportos/delivery/PassportOS-0.1.2-Windows.zip",
+  "zip_bytes": 9586945,
+  "zip_sha256": "d143376cd23f9b4fdddd828c6cf4d68b72d0ca8bcca9a22e7939d1306512c671",
+  "zip_extract_and_verify": "PASS",
+  "capture_tool_tamper_rejected": "PASS",
+  "private_exports_and_synthetic_fixtures_excluded": "PASS",
+  "host_c_sanitized_executables": 7,
+  "host_python_tests": 22,
+  "host_browser_test": "PASS",
+  "windows_11_execution": "NOT RUN",
+  "physical_device_execution": "NOT RUN",
+  "flashed": false
+}

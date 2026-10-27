@@ -1,0 +1,166 @@
+{
+  "format": "passport-launcher.community-inputs",
+  "version": "0.4.1",
+  "host_import_test": "PASS",
+  "machine_code_executed": false,
+  "physical_device_tests": "NOT RUN",
+  "files": [
+    {
+      "file": "QSO-Vision_latest2.3.3.bin",
+      "file_bytes": 1894144,
+      "sha256": "8f9a2198fd5d764945cd96931fb7b1e81d4c7ee986e1b6e99f44079e9005a483",
+      "app_offset": "0x10000",
+      "application_bytes": 1828608,
+      "idf_version": "v5.5.3",
+      "project": "FoloToy-AI-Passport",
+      "version": "2.3.3",
+      "flash_header": [
+        233,
+        6,
+        2,
+        63
+      ],
+      "partitions": [
+        {
+          "label": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "offset": "0x9000",
+          "size": 24576,
+          "flags": 0
+        },
+        {
+          "label": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "offset": "0xf000",
+          "size": 4096,
+          "flags": 0
+        },
+        {
+          "label": "factory",
+          "type": 0,
+          "subtype": 0,
+          "offset": "0x10000",
+          "size": 8323072,
+          "flags": 0
+        }
+      ],
+      "esp_image_checksum_and_sha256": "PASS",
+      "physical_execution": "NOT RUN",
+      "import": "PASS",
+      "application_sha256": "6ab6aec30d4453a663f5de40419de9764c9c3586cae0bced8f58881612563228",
+      "assigned_id": "community.qso-vision",
+      "idf_compatibility": "community ESP-IDF 5.5.x"
+    },
+    {
+      "file": "pokemon.bin",
+      "file_bytes": 3294816,
+      "sha256": "8b49d5151a9d5f46021218682faef745444e6e9dad27354a5cb9e21098c215f1",
+      "app_offset": "0x10000",
+      "application_bytes": 3229280,
+      "idf_version": "v5.5.3",
+      "project": "PokeWalk",
+      "version": "v2026.10.24-johto-5-g1d1710f-di",
+      "flash_header": [
+        233,
+        6,
+        2,
+        63
+      ],
+      "partitions": [
+        {
+          "label": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "offset": "0x9000",
+          "size": 24576,
+          "flags": 0
+        },
+        {
+          "label": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "offset": "0xf000",
+          "size": 4096,
+          "flags": 0
+        },
+        {
+          "label": "factory",
+          "type": 0,
+          "subtype": 0,
+          "offset": "0x10000",
+          "size": 3407872,
+          "flags": 0
+        },
+        {
+          "label": "cardid",
+          "type": 1,
+          "subtype": 2,
+          "offset": "0x356000",
+          "size": 16384,
+          "flags": 0
+        },
+        {
+          "label": "save_restore",
+          "type": 1,
+          "subtype": 64,
+          "offset": "0x360000",
+          "size": 65536,
+          "flags": 0
+        },
+        {
+          "label": "wifi_config",
+          "type": 1,
+          "subtype": 2,
+          "offset": "0x370000",
+          "size": 24576,
+          "flags": 0
+        },
+        {
+          "label": "pokewalk_store",
+          "type": 1,
+          "subtype": 65,
+          "offset": "0x380000",
+          "size": 131072,
+          "flags": 0
+        },
+        {
+          "label": "recovery",
+          "type": 0,
+          "subtype": 32,
+          "offset": "0x700000",
+          "size": 1048576,
+          "flags": 0
+        }
+      ],
+      "esp_image_checksum_and_sha256": "PASS",
+      "physical_execution": "NOT RUN",
+      "import": "BLOCKED",
+      "reason": "Custom cardid/save_restore/wifi_config/pokewalk_store/recovery partitions. Its code can fit the shared pool, but the extra data partitions require a source port."
+    },
+    {
+      "file": "Internet-Radio.bin",
+      "file_bytes": 1889520,
+      "sha256": "88030672c78ba5cc529fa84934198c12fbd90cd32dc11234ec3d4d6ed2a9b822",
+      "app_offset": "0x0",
+      "application_bytes": 1889520,
+      "idf_version": "v5.5",
+      "project": "Internet-Radio",
+      "version": "1.5.6",
+      "flash_header": [
+        233,
+        6,
+        2,
+        63
+      ],
+      "partitions": [],
+      "esp_image_checksum_and_sha256": "PASS",
+      "physical_execution": "NOT RUN",
+      "import": "PASS",
+      "application_sha256": "88030672c78ba5cc529fa84934198c12fbd90cd32dc11234ec3d4d6ed2a9b822",
+      "assigned_id": "community.internet-radio",
+      "idf_compatibility": "community ESP-IDF 5.5.x"
+    }
+  ]
+}

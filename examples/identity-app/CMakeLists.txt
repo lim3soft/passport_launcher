@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+set(PROJECT_VER "0.1.1")
+set(EXTRA_COMPONENT_DIRS "../../components")
+set(SDKCONFIG_DEFAULTS "../../sdkconfig.defaults")
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+idf_build_set_property(MINIMAL_BUILD ON)
+project(PassportOS-TestApp)

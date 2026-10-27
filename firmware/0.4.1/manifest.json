@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "product": "Passport Launcher",
+  "version": "0.4.1",
+  "flash_offset": "0x0",
+  "fresh_clears_existing_apps_and_settings": true,
+  "update_from": "0.4.0; cancel auto start and return to launcher first; whole-chip erase OFF",
+  "matching_elf_sha256": "04bb2dafa31736a2afcc0bcd564657d9cfe1e9cbf39591cdf4b52aae7112df72",
+  "community": {
+    "projectId": 1704,
+    "revisionId": 3933,
+    "status": "pending"
+  },
+  "validation": {
+    "Build": "PASS",
+    "Host tests": "PASS",
+    "Device tests": "NOT RUN"
+  },
+  "files": {
+    "Passport-Launcher-0.4.1-READ-ME.txt": {
+      "size": 3354,
+      "sha256": "8b270b7c3b342289521e0a0ab2a98ee107478bcb984ab1383b9fb92ed23ca47c"
+    },
+    "Passport-Launcher-0.4.1-cover.png": {
+      "size": 1873954,
+      "sha256": "ad3304ff88770dbe9956eefc8b0b9bda59fa91717925bc1ce44b25a24caa3808"
+    },
+    "Passport-Launcher-0.4.1-fresh.bin": {
+      "size": 8388608,
+      "sha256": "712793278a88ea374ddf5503f46a07b6404ed981074b543f99cbb2f14d6b0a2f"
+    },
+    "Passport-Launcher-0.4.1-licenses.txt": {
+      "size": 785799,
+      "sha256": "f279b00f2759639a951ded45a0706e1a7e8f8431532d159e2e3762a062458ece"
+    },
+    "Passport-Launcher-0.4.1-preview.png": {
+      "size": 41694,
+      "sha256": "4c1142891c10027441987c04ce68d5385b068f9937b009f739fbeb504ab8670d"
+    },
+    "Passport-Launcher-0.4.1-update.bin": {
+      "size": 1608272,
+      "sha256": "05787d8ce269127f2569a5d53e552ff5bca4ca7e107010943efd9e4273a34dab"
+    },
+    "RELEASE-NOTES.md": {
+      "size": 3593,
+      "sha256": "b822221d3c8cee89373e71e21a64538c24a448a64c477492c5e5a406be00ffd8"
+    },
+    "USER-GUIDE-CN-EN.txt": {
+      "size": 1840,
+      "sha256": "b4068f590807d7c14dc2d9740f4c5f5f2f9b9077cf6afa0bfe726850db97b499"
+    }
+  }
+}

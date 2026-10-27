@@ -1,0 +1,54 @@
+Passport Launcher 0.4.1 - menu, startup selector and web progress
+Developed by 9W3SPY
+
+UPDATE FROM 0.4.0
+Use Passport-Launcher-0.4.1-update.bin at address 0x0.
+WHOLE-CHIP ERASE MUST BE OFF.
+Before flashing: power-cycle, cancel Auto start, and wait for the launcher menu.
+This captures the running community app's current default-NVS settings before
+the merged prefix resets platform/default NVS. No export or backup is required.
+
+Use your Windows 11 browser flasher. The bootloader/table and SDK 2 registry
+layout are unchanged. The update ends at 0x188a50, below the shared
+app area at 0x190000, so app extents/private settings/metadata remain outside
+its write range when full erase is disabled. Do NOT use the old 8 MiB fresh
+image for this update. Do NOT upload this launcher update through the app portal.
+Earlier fixed-slot 0.1-0.3 devices require a deliberate fresh migration instead.
+This host has not flashed or tested the physical board.
+
+YOUR EIGHT CHANGES
+1. Auto start defaults to Last booted app. Open Auto start > Startup app to
+   select another installed app permanently, or select Last booted app again.
+   On/Off stays independent. A fixed choice survives other manual app launches.
+   Countdown highlights the actual startup target; any button cancels.
+   Uninstalling a pinned target returns the preference to Last booted app.
+2. The main About row has no developer credit; credit remains inside About.
+3. A horizontal line separates installed apps from the launcher actions.
+4. Passport Launcher is a larger bold main-menu heading; Your library is removed.
+5. Portal progress shows actual BIN upload, then waits for device installation
+   and verification. Only the final successful response reports completion.
+   Preflight rejection, HTTP error, interruption or timeout never reports success.
+6. The requested QSO legacy-settings advice paragraph is removed. Its optional
+   compatibility button/API remain for existing SDK users.
+7. Portal About adds the developer GitHub link.
+8. Portal footer: Developed by 9W3SPY | Visit GitHub.
+   Both links use https://github.com/lim3soft/passport_launcher
+
+UPLOAD APPS AS BEFORE
+On device: Install a ROM. Wi-Fi Passport Launcher / password aipassport.
+Open http://192.168.168.1, choose a local .bin, wait for checks and Install / update.
+After confirmed completion, hold OK to return and choose the app on the device.
+Shared app storage, capacity checks and confirmed full uninstall remain intact.
+QSO is separate, not built into the launcher. No community downloader is included.
+
+Build: PASS. Host tests: PASS (10 C sanitizer executables, 24 Python tests,
+browser progress/error models, production startup persistence and NVS faults).
+Native LVGL render: PASS with all 16 entries and a 48 KiB pool.
+Device tests: NOT RUN. Unverified: real board UI/boot, Windows browser upload,
+RF/heap/stack, physical app execution and settings retention/recovery.
+Please test startup-app selection/On-Off/cancellation and portal upload progress
+on your laptop/device. The PNG is a host render, not a physical screenshot.
+
+Firmware SHA256: 05787d8ce269127f2569a5d53e552ff5bca4ca7e107010943efd9e4273a34dab
+Matching ELF SHA256: 04bb2dafa31736a2afcc0bcd564657d9cfe1e9cbf39591cdf4b52aae7112df72
+Debug archive: /root/passportos/build/firmware/05787d8ce269127f2569a5d53e552ff5bca4ca7e107010943efd9e4273a34dab
