@@ -1,0 +1,134 @@
+{
+  "version": "0.4.2",
+  "files": [
+    {
+      "file": "badminston score.bin",
+      "fixture": "custom-0.transport",
+      "sha256": "989cb4e5f3813c2c5ae30a939b857f41c089103f6fb1c20f27566b8a5f46e0f4",
+      "application_bytes": 1429488,
+      "private_bytes": 204800,
+      "minimum_allocated_bytes": 1634304,
+      "idf": "v5.5.3-dirty",
+      "partitions": [
+        {
+          "name": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 135168,
+          "bytes": 65536
+        },
+        {
+          "name": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "privateOffset": 200704,
+          "bytes": 4096
+        }
+      ],
+      "host_import": "PASS",
+      "physical_execution": "NOT RUN",
+      "host_production_lifecycle": "PASS"
+    },
+    {
+      "file": "pokemon.bin",
+      "fixture": "custom-1.transport",
+      "sha256": "8b49d5151a9d5f46021218682faef745444e6e9dad27354a5cb9e21098c215f1",
+      "application_bytes": 3229280,
+      "private_bytes": 1507328,
+      "minimum_allocated_bytes": 4739072,
+      "idf": "v5.5.3",
+      "partitions": [
+        {
+          "name": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 135168,
+          "bytes": 24576
+        },
+        {
+          "name": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "privateOffset": 159744,
+          "bytes": 4096
+        },
+        {
+          "name": "cardid",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 163840,
+          "bytes": 16384
+        },
+        {
+          "name": "save_restore",
+          "type": 1,
+          "subtype": 64,
+          "privateOffset": 180224,
+          "bytes": 65536
+        },
+        {
+          "name": "wifi_config",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 245760,
+          "bytes": 24576
+        },
+        {
+          "name": "pokewalk_store",
+          "type": 1,
+          "subtype": 65,
+          "privateOffset": 270336,
+          "bytes": 131072
+        },
+        {
+          "name": "recovery",
+          "type": 0,
+          "subtype": 32,
+          "privateOffset": 458752,
+          "bytes": 1048576
+        }
+      ],
+      "host_import": "PASS",
+      "physical_execution": "NOT RUN",
+      "host_production_lifecycle": "PASS"
+    },
+    {
+      "file": "qiannian-jiazu-v3.4-full.bin",
+      "fixture": "custom-2.transport",
+      "sha256": "fe024e30e40c9656fa7871385803e6b9cc8261f4c8bcca1fa8809bbf8105feba",
+      "application_bytes": 1601136,
+      "private_bytes": 180224,
+      "minimum_allocated_bytes": 1781760,
+      "idf": "v5.5.3",
+      "partitions": [
+        {
+          "name": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 135168,
+          "bytes": 24576
+        },
+        {
+          "name": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "privateOffset": 159744,
+          "bytes": 4096
+        },
+        {
+          "name": "cardid",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 163840,
+          "bytes": 16384
+        }
+      ],
+      "host_import": "PASS",
+      "physical_execution": "NOT RUN",
+      "host_production_lifecycle": "PASS"
+    }
+  ],
+  "all_three_minimum_bytes": 8155136,
+  "shared_pool_bytes": 6684672,
+  "fits_all_three": false
+}

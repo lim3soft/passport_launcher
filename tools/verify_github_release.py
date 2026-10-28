@@ -5,7 +5,7 @@ import hashlib,json,sys
 from verify_firmware import parse_partition_table
 
 def verify(version,base=None):
-    if version!='0.4.1':raise ValueError('This release verifier is bound to the reviewed 0.4.1 artifacts')
+    if version not in {'0.4.1','0.4.2'}:raise ValueError('This release verifier accepts reviewed 0.4.1/0.4.2 artifacts only')
     root=Path(base) if base else Path(__file__).resolve().parents[1]/'firmware'/version
     manifest=json.loads((root/'manifest.json').read_text())
     if manifest.get('schema_version')!=1 or manifest.get('version')!=version:raise ValueError('Manifest identity mismatch')

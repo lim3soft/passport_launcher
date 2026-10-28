@@ -1,0 +1,33 @@
+Passport Launcher 0.4.2 — community BIN compatibility update
+Developed by 9W3SPY
+
+EXISTING 0.4.0 / 0.4.1: use Passport-Launcher-0.4.2-update.bin.
+1. Power-cycle, cancel Auto start, and wait for the launcher menu.
+2. In your USB web flasher, write this UPDATE file at 0x0.
+   Whole-chip erase / erase-all MUST be OFF to retain apps and settings.
+3. Open Install a ROM. Join Wi-Fi Passport Launcher, password aipassport.
+   Reload http://192.168.168.1 and select your original community .bin.
+   Wait for Installation complete, then choose it from the device menu.
+The bootloader is updated; the short image ends before app storage at 0x190000.
+Do not upload the launcher update BIN through its own app-install portal.
+
+FRESH FIRST INSTALL / OLD 0.1-0.3: Passport-Launcher-0.4.2-fresh.bin at 0x0.
+The FRESH file intentionally clears ALL 8 MiB: installed apps and settings lost.
+
+FIX: import different factory offsets, larger NVS, extra private data/resources
+and test/recovery partitions. Names are not whitelisted. QSO and Radio still work
+in the host tests. The original badminton, Pokemon and qiannian-jiazu BINs all
+pass host production install, boot mapping, settings preservation and uninstall.
+Host tests do NOT run ESP32 code. Actual device/app execution is unverified.
+Hard-coded absolute flash addresses or alternate OTA/recovery boot chains may
+still require application changes. Do not downgrade after using new layouts.
+
+Space includes declared private partitions, even if absent/blank in the input.
+Minimum use: badminton 1,634,304 B; Pokemon 4,739,072 B; qiannian 1,781,760 B.
+All three need 8,155,136 B before placement gaps; the pool is only 6,684,672 B.
+Uninstall other apps as needed. All three cannot be retained together.
+Updates preserve private data; a changed private layout requires uninstall first.
+
+Source workspace: /root/passport-launcher-github
+Public project: https://github.com/lim3soft/passport_launcher
+See the community and GitHub release pages for publication status. The owner reports the compatibility update is working on their device.

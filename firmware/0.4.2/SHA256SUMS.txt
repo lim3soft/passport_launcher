@@ -1,0 +1,9 @@
+e5a5e4713b6a41efa0981ac36c7d5baaea92ac5829f8c815c779fb41c230b7ec  COMMUNITY-BIN-RESULTS.json
+cd897154fbc390f94b298d8ebab3393c236c0cb3bfe0e0dd8542cee8a5e33bd4  Passport-Launcher-0.4.2-READ-ME.txt
+ad3304ff88770dbe9956eefc8b0b9bda59fa91717925bc1ce44b25a24caa3808  Passport-Launcher-0.4.2-cover.png
+abb2d12dc18704b9e5a8f1d34eab1fe221b9e06fac1c52fff0a91e12d0a086c1  Passport-Launcher-0.4.2-fresh.bin
+f279b00f2759639a951ded45a0706e1a7e8f8431532d159e2e3762a062458ece  Passport-Launcher-0.4.2-licenses.txt
+f56177d1824ceb3732dc6b92fca3fc0d6d2828b16e822fa1674b2f9fa9bfce84  Passport-Launcher-0.4.2-update.bin
+63792bb1a1085b96b853dc5d2d9a02343efe48a64bb1c50673e1e251e8201619  RELEASE-NOTES.md
+9675ff091e18b75b311105b4ab92973781daee98b6220bd20e34ea6a511e303a  USER-GUIDE-CN-EN.txt
+18609c9fcd0f01f21f0daee204dc2491148b7a174ec0f552c538ab131257aa37  manifest.json
