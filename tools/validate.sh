@@ -58,6 +58,13 @@ if [[ "$mode" != --firmware ]]; then
         tests/test_lifecycle.c components/passport_core/passport_model.c \
         components/passport_core/passport_qso_data.c -lcrypto -o /tmp/passportos-test-lifecycle
     ASAN_OPTIONS=detect_leaks=0 /tmp/passportos-test-lifecycle "$lifecycle_dir"
+    node tests/community_layout_fixtures.cjs "$lifecycle_dir" "${PASSPORT_COMMUNITY_INPUTS:-}"
+    cc -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
+        -DPASSPORT_TEST_REAL_SHA -Itests/manager_stubs -Imain \
+        -Icomponents/passport_core/include -Icomponents/passport_sdk/include \
+        tests/test_custom_layout.c components/passport_core/passport_model.c \
+        components/passport_core/passport_qso_data.c -lcrypto -o /tmp/passportos-test-custom
+    ASAN_OPTIONS=detect_leaks=0 /tmp/passportos-test-custom "$lifecycle_dir"
     python3 -m unittest discover -s tests -p 'test_*.py' -v
     node tests/test_web_ui.cjs
     node tests/test_bin_import.cjs

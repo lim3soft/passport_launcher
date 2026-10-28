@@ -141,7 +141,7 @@ int main(void)
     received=0;memset(((passport_package_t *)upload)->app_id,0,64);strcpy(((passport_package_t *)upload)->app_id,"org.test.app");
     assert(passport_preflight_http(&check)==ESP_OK&&destructive==0);
     reset(0);passport_import_note(IMPORT_LAYOUT,0);
-    assert(passport_import_message(message,sizeof(message))&&strstr(message,"Custom partitions"));
+    assert(passport_import_message(message,sizeof(message))&&strstr(message,"Unsupported ROM layout"));
     reset(0);
     assert(passport_install_http(&req)==ESP_OK);
     int install_ops=operation;
@@ -207,3 +207,8 @@ esp_err_t passport_compat_set_mode(unsigned slot,const char *id,bool legacy) {(v
 
 esp_err_t passport_autostart_load(char id[64]){memcpy(id,stored_startup,64);return ESP_OK;}
 esp_err_t passport_autostart_save(const char *id){memset(stored_startup,0,64);strcpy(stored_startup,id);return ESP_OK;}
+
+esp_err_t esp_flash_write(void *chip,const void *data,uint32_t address,uint32_t size)
+{(void)chip;(void)data;(void)address;(void)size;assert(false);return ESP_FAIL;}
+esp_err_t esp_flash_erase_region(void *chip,uint32_t address,uint32_t size)
+{(void)chip;(void)address;(void)size;assert(false);return ESP_FAIL;}

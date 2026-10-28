@@ -85,20 +85,55 @@
     if(!equal(sha256(bytes.subarray(start,end)),bytes.subarray(end,end+32)))fail('Firmware image hash failed.');
     return end+32;
   }
-  function baselineTable(bytes) {
-    const expected=[['nvs',1,2,0x9000,0x6000],['phy_init',1,1,0xf000,0x1000],['factory',0,0,0x10000,0x7f0000]];
-    for(let i=0;i<3;i++) {
-      const o=0x8000+i*32,[name,type,sub,offset,size]=expected[i];
-      if(bytes[o]!==0xaa||bytes[o+1]!==0x50||bytes[o+2]!==type||bytes[o+3]!==sub||
-         u32(bytes,o+4)!==offset||u32(bytes,o+8)!==size||text(bytes,o+12,16)!==name||u32(bytes,o+28)!==0)
-        fail('Unsupported merged partition layout. Extra resources/data/OTA partitions need a port; upload was not started.','layout');
+  function partitionTable(bytes) {
+    const rows=[];
+    let marker=0x8000;
+    while(marker+32<=0x9000 && bytes[marker]===0xaa && bytes[marker+1]===0x50) {
+      const e={type:bytes[marker+2],sub:bytes[marker+3],offset:u32(bytes,marker+4),size:u32(bytes,marker+8),name:text(bytes,marker+12,16)};
+      if(u32(bytes,marker+28)!==0 || !/^[a-zA-Z0-9_-]{1,15}$/.test(e.name) || !e.size || (e.offset&4095) || (e.size&4095) ||
+         e.offset<0x9000 || e.offset>=0x800000 || e.size>0x800000-e.offset || (e.type===0 && (e.offset&65535)))
+        fail('Invalid, encrypted or unsupported partition entry.','layout');
+      if(rows.some(p=>p.name===e.name || (p.offset<e.offset+e.size && e.offset<p.offset+p.size)))fail('Overlapping or duplicate firmware partitions.','layout');
+      rows.push(e);marker+=32;
     }
-    const marker=0x8060;
-    if(bytes[marker]!==0xeb||bytes[marker+1]!==0xeb||!equal(md5(bytes.subarray(0x8000,marker)),bytes.subarray(marker+16,marker+32)))
+    if(bytes[marker]!==0xeb || bytes[marker+1]!==0xeb || !equal(md5(bytes.subarray(0x8000,marker)),bytes.subarray(marker+16,marker+32)))
       fail('Partition table integrity check failed.');
     if(bytes.subarray(marker+32,0x9000).some(x=>x!==255))fail('Unexpected extra partition-table data.');
-    if(bytes.subarray(0x9000,0x10000).some(x=>x!==255))
-      fail('Merged file includes initial NVS/PHY data; this importer requires blank data regions.','layout');
+    const main=rows.filter(e=>e.type===0&&e.sub===0);
+    if(main.length!==1)fail('Merged firmware must contain one factory application.','layout');
+    const app=main[0], extras=rows.filter(e=>e!==app);
+    const standard=rows.length===3 && app.name==='factory' && app.offset===0x10000 && app.size===0x7f0000 &&
+      extras.some(e=>e.name==='nvs'&&e.type===1&&e.sub===2&&e.offset===0x9000&&e.size===0x6000) &&
+      extras.some(e=>e.name==='phy_init'&&e.type===1&&e.sub===1&&e.offset===0xf000&&e.size===0x1000) &&
+      bytes.subarray(0x9000,0x10000).every(x=>x===255);
+    if(standard)return {app,rows,layout:null,resources:new Uint8Array(0)};
+    if(extras.length>8 || extras.filter(e=>e.name==='nvs'&&e.type===1&&e.sub===2&&e.size>=0x3000).length!==1)
+      fail('Firmware needs one NVS partition and at most eight private partitions.','layout');
+    let cursor=0x21000;
+    const entries=extras.map(e=>{
+      if((e.type!==1 && !(e.type===0&&e.sub===0x20)) || ['factory','active_app','pos_meta','otadata'].includes(e.name) || e.name.startsWith('appdata') ||
+        (e.type===1 && (e.sub===0||e.sub===4)) || (e.name==='nvs'&&(e.type!==1||e.sub!==2||e.size<0x3000)) ||
+        (e.name==='phy_init'&&(e.type!==1||e.sub!==1||e.size!==0x1000)))
+        fail('Unsupported OTA/encrypted/reserved partition: '+e.name+'.','layout');
+      const alignment=e.type===0?65536:4096;
+      cursor=Math.ceil(cursor/alignment)*alignment;
+      const out={...e,relative:cursor};cursor+=e.size;return out;
+    });
+    if(cursor>MAX)fail('App private partitions exceed usable flash.','too_large',cursor+app.size);
+    const resources=new Uint8Array(cursor-0x21000);resources.fill(255);
+    for(const e of entries) {
+      const data=bytes.subarray(e.offset,Math.min(bytes.length,e.offset+e.size));
+      if(e.type===0 && data.some(x=>x!==255)) {
+        const end=imageEnd(bytes,e.offset,Math.min(bytes.length,e.offset+e.size));
+        if(bytes.subarray(end,Math.min(bytes.length,e.offset+e.size)).some(x=>x!==255))fail('Unsupported signed auxiliary image.','layout');
+      }
+      resources.set(data,e.relative-0x21000);
+    }
+    const layout=new Uint8Array(332),v=new DataView(layout.buffer);
+    v.setUint32(0,0x31444c50,true);v.setUint32(4,entries.length,true);v.setUint32(8,resources.length,true);layout.set(sha256(resources),16);
+    entries.forEach((e,i)=>{const o=48+i*32;v.setUint16(o,0x50aa,true);layout[o+2]=e.type;layout[o+3]=e.sub;
+      v.setUint32(o+4,e.relative,true);v.setUint32(o+8,e.size,true);for(let j=0;j<e.name.length;j++)layout[o+12+j]=e.name.charCodeAt(j);});
+    return {app,rows,layout,resources};
   }
   function sdkId(image) {
     const prefix='PASSPORTOS_ABI2:';
@@ -121,21 +156,28 @@
   function inspect(input,filename) {
     const bytes=input instanceof Uint8Array?input:new Uint8Array(input);
     if(bytes.length>0x800000)fail('File exceeds the board\'s 8 MB flash capacity.');
-    let start=0,merged=false;
+    let start=0,merged=false,table=null;
     if(bytes.length>=0x10120 && bytes[0x8000]===0xaa&&bytes[0x8001]===0x50) {
       if(bytes[0]!==0xe9||bytes[12]!==5||bytes[13]!==0)fail('Merged bootloader is not ESP32-C3.');
-      baselineTable(bytes);start=0x10000;merged=true;
+      table=partitionTable(bytes);start=table.app.offset;merged=true;
     }
-    const end=imageEnd(bytes,start,bytes.length),image=bytes.slice(start,end);
+    const end=imageEnd(bytes,start,table?Math.min(bytes.length,start+table.app.size):bytes.length),image=bytes.slice(start,end);
     if(image.length>MAX)fail('Application cannot fit alongside the launcher and its private settings.','too_large',image.length);
-    if(bytes.subarray(end).some(x=>x!==255))fail('Unexpected trailing data/resources or signed image; requires a compatible port.');
+    if(table) {
+      // Reject unexplained bytes, including signed-image trailers. Table and bootloader are never copied.
+      const ranges=[{offset:0,size:0x9000},...table.rows.map(e=>e===table.app?{offset:start,size:end-start}:e)].sort((a,b)=>a.offset-b.offset);
+      let cursor=0;for(const r of ranges){if(r.offset>cursor && bytes.subarray(cursor,r.offset).some(x=>x!==255))fail('Unexpected data outside declared partitions.');cursor=Math.max(cursor,r.offset+r.size);}
+      if(bytes.subarray(cursor).some(x=>x!==255))fail('Unexpected trailing data outside declared partitions.');
+    } else if(bytes.subarray(end).some(x=>x!==255))fail('Unexpected trailing data/resources or signed image; requires a compatible port.');
     const id=sdkId(image),project=text(image,80,32),version=text(image,48,32);
     const idf=text(image,144,32);
+    if(id&&table&&table.layout)fail('Native SDK apps cannot declare community private partitions.');
     if(id&&idf!=='v5.5.3'&&!idf.startsWith('v5.5.3-'))fail('Launcher SDK apps require ESP-IDF 5.5.3.');
-    const name=(filename||project||'Community app').replace(/\.bin$/i,'').slice(0,31);
+    const proposed=(filename||project||'Community app').replace(/\.bin$/i,'');
+    const name=(/^[ -~]+$/.test(proposed)?proposed:(project||'Community app')).slice(0,31);
     const stem=name.replace(/[-_ ](?:latest)?v?\d+(?:\.\d+){1,3}.*$/i,'').replace(/[-_ ]latest.*$/i,'');
     const slug=stem.toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^[^a-z]+/,'').slice(0,53)||'app';
-    return {image,merged,project,idf,version:version||'community',name,id:id||'community.'+slug,abi:id?2:0};
+    return {image,merged,project,idf,version:version||'community',name,id:id||'community.'+slug,abi:id?2:0,layout:table&&table.layout,resources:table?table.resources:new Uint8Array(0),privateBytes:table&&table.layout?0x21000+table.resources.length:0x20000};
   }
   function pack(info,name,id) {
     if(info.abi===2&&id!==info.id)fail('Keep the native SDK app ID unchanged.');
@@ -147,7 +189,8 @@
     };
     put('PPTOS01',0,8);view.setUint32(8,1,true);view.setUint32(12,info.abi,true);view.setUint32(16,info.image.length,true);
     put(id,20,64);put(name,84,32);put(info.version.slice(0,31),116,32);h.set(sha256(info.image),148);
-    return new Blob([h,info.image]);
+    if(info.layout)h.set(info.layout,180);
+    return new Blob([h,info.image,info.resources]);
   }
   const api={inspect,pack,sha256,md5};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;

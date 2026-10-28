@@ -1,3 +1,5 @@
+> Current 0.4.2: [community private-partition support and owner BIN results](community-compatibility-0.4.2.md). Earlier custom-layout rejection notes below describe previous versions.
+
 <p align="right"><a href="community-bins.zh_CN.md">简体中文</a> · <strong>English</strong></p>
 
 # Passport Launcher 0.2.0 — community BIN import

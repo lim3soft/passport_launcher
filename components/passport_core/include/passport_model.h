@@ -13,8 +13,28 @@
 #define PASSPORT_MAGIC "PPTOS01"
 #define PASSPORT_TICKET_MAGIC 0x50505431u
 #define PASSPORT_NO_SLOT UINT32_MAX
+#define PASSPORT_LAYOUT_MAGIC 0x31444c50u /* PLD1 */
+#define PASSPORT_RESOURCE_BASE (PASSPORT_DATA_SIZE + 0x1000u)
+#define PASSPORT_RESOURCE_COUNT 8u
 
-/* All integer fields are little endian. Reserved bytes must be zero.
+/* Offsets are relative to this app's private extent, never input flash addresses. */
+typedef struct {
+    uint16_t magic;
+    uint8_t type, subtype;
+    uint32_t offset, size;
+    char label[16];
+    uint32_t flags;
+} passport_resource_t;
+typedef struct {
+    uint32_t magic, count, payload_size, reserved;
+    uint8_t sha256[32];
+    passport_resource_t entries[PASSPORT_RESOURCE_COUNT];
+    uint8_t padding[28];
+} passport_layout_t;
+_Static_assert(sizeof(passport_layout_t)==332, "layout extension ABI");
+
+/* All integer fields are little endian. Reserved bytes are zero for the original
+ * format, or contain the validated PLD1 private-partition extension.
  * Upload ABI 0 denotes an unmodified community image. Durable v2 registry entries
  * use SDK ABI 2; pos_meta records community storage mode. */
 typedef struct {
@@ -49,6 +69,9 @@ bool passport_allocation_valid(uint32_t image_offset,uint32_t image_capacity,uin
 passport_ticket_t passport_make_launch_ticket(unsigned slot, const passport_record_t *record);
 
 bool passport_package_valid(const passport_package_t *p);
+bool passport_package_layout(const passport_package_t *p, passport_layout_t *out);
+uint32_t passport_package_data_size(const passport_package_t *p);
+bool passport_package_layout_equal(const passport_package_t *a,const passport_package_t *b);
 void passport_registry_init(passport_registry_t *r);
 bool passport_registry_valid(const passport_registry_t *r);
 /* Reuses the same ID's private data. Code is sized from remaining extents. */

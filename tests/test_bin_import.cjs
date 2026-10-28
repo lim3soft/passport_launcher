@@ -36,16 +36,29 @@ function merged(app) {
   assert.equal(tool.inspect(image({idf:'v5.5'}),'Radio.bin').abi,0);
   assert.equal(tool.inspect(image({idf:'v5.5.2'}),'Radio.bin').abi,0);
   assert.equal(tool.inspect(image(),'QSO-Vision_latest2.3.3.bin').id,'community.qso-vision');
+  const chinese=tool.inspect(image(),'千年家族.bin');assert.equal(chinese.name,'CommunityTest');assert.ok(tool.pack(chinese,chinese.name,chinese.id));
   assert.throws(()=>tool.inspect(image({sdk:true,idf:'v5.5'}),'Native.bin'),/SDK apps require/);
   assert.throws(()=>tool.pack(native,'Native','community.wrong'),/native SDK/);
   assert.throws(()=>tool.pack(info,'Radio','../app'),/App ID/);
   assert.throws(()=>tool.pack(info,'名字',info.id),/ASCII/);
   assert.ok(tool.inspect(image({large:0x280000}),'Large.bin').image.length>0x200000);
   const padded=Buffer.alloc(0x800000,255);full.copy(padded);eq(tool.inspect(padded,'Full.bin').image,app);
-  for(const offset of [0x8000,0x8002,0x8004,0x8008,0x800c,0x801c,0x8070,0x8080,0x9000,0xf000,0x10000,0x10001,0x10002,0x10003,0x1000c,0x10020,0x10120,full.length-1]) {
+  for(const offset of [0x8000,0x8002,0x8004,0x8008,0x800c,0x801c,0x8070,0x8080,0x10000,0x10001,0x10002,0x10003,0x1000c,0x10020,0x10120,full.length-1]) {
     const changed=Buffer.from(full);changed[offset]^=1;
     assert.throws(()=>tool.inspect(changed,'Bad.bin'),undefined,'offset '+offset.toString(16));
   }
+  for(const offset of [0x9000,0xf000]) {
+    const initialized=Buffer.from(full);initialized[offset]=0x42;
+    const imported=tool.inspect(initialized,'Initialized.bin');assert.ok(imported.layout);assert.ok(imported.resources.includes(0x42));
+  }
+  const shifted=Buffer.alloc(0x20000+app.length,255);shifted[0]=233;shifted.writeUInt16LE(5,12);
+  full.subarray(0x8000,0x9000).copy(shifted,0x8000);
+  shifted.writeUInt32LE(0x10000,0x8008);shifted.writeUInt32LE(0x19000,0x8024);
+  shifted.writeUInt32LE(0x20000,0x8044);shifted.writeUInt32LE(0x7e0000,0x8048);
+  shifted.set(hash('md5',shifted.subarray(0x8000,0x8060)),0x8070);app.copy(shifted,0x20000);
+  const moved=tool.inspect(shifted,'Shifted.bin');eq(moved.image,app);assert.equal(moved.privateBytes,0x32000);
+  const tableCases=[{o:0x8004,v:0x10000},{o:0x8044,v:0x10000},{o:0x8008,v:0xffffffff},{o:0x801c,v:1}];
+  for(const c of tableCases){const bad=Buffer.from(shifted);bad.writeUInt32LE(c.v,c.o);bad.set(hash('md5',bad.subarray(0x8000,0x8060)),0x8070);assert.throws(()=>tool.inspect(bad,'Bad table.bin'));}
   for(const raw of [full.subarray(0,full.length-1),Buffer.concat([app,Buffer.from([0])]),image({chip:9}),
     image({idf:'v5.4.0'}),image({large:0x640000}),Buffer.alloc(0x800001),Buffer.alloc(20)])
     assert.throws(()=>tool.inspect(raw,'Bad.bin'));

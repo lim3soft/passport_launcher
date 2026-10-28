@@ -1,3 +1,5 @@
+> Current 0.4.2: [community private-partition support and owner BIN results](community-compatibility-0.4.2.md). Earlier custom-layout rejection notes below describe previous versions.
+
 <p align="right"><strong>简体中文</strong> · <a href="shared-storage.md">English</a></p>
 
 # 0.4.0 共享 Flash

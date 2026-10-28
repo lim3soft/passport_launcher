@@ -79,3 +79,6 @@ esp_err_t esp_partition_write(const esp_partition_t *p,size_t offset,const void 
 esp_err_t esp_partition_register_external(void *chip,size_t address,size_t size,const char *label,unsigned type,unsigned subtype,const esp_partition_t **out);
 esp_err_t esp_partition_deregister_external(const esp_partition_t *p);
 esp_err_t esp_flash_read(void *chip,void *out,uint32_t address,uint32_t size);
+
+esp_err_t esp_flash_write(void *chip,const void *data,uint32_t address,uint32_t size);
+esp_err_t esp_flash_erase_region(void *chip,uint32_t address,uint32_t size);

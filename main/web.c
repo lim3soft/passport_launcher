@@ -27,14 +27,14 @@ static const char html[] =
 "background:#0c151d;color:#f3f7fa}button,input{box-sizing:border-box;padding:12px;margin:6px 0;max-width:100%}button{cursor:pointer;border:0;border-radius:16px;background:#c3f77a;color:#0c151d}"
 "article{background:#192a35;border-radius:18px;padding:18px;margin:12px 0}small{display:block;color:#9bb2c0}a{color:#c3f77a}label{display:block}.danger{background:#ffa0a0}nav{display:flex;gap:16px;flex-wrap:wrap}progress{width:100%;height:22px;accent-color:#c3f77a}footer{margin-top:32px;padding-top:16px;border-top:1px solid #344b59;color:#9bb2c0}</style>"
 "<nav><a href=/about>About</a></nav><h1>Passport Launcher</h1><p>Your ROM library. Choose a .bin, install it here, then select it on the device to launch.</p>"
-"<p>Apps share available flash, with private settings reserved for each app. Standard AI-Passport merged binaries are extracted locally; their bootloader and partition table are never installed.</p>"
+"<p>Apps share available flash, with private settings reserved for each app. Merged binaries are inspected locally. Their app and supported private partitions are imported; the launcher bootloader is retained.</p>"
 "<p id=capacity></p>"
 "<input type=file id=file accept='.bin'><div id=identity hidden>"
 "<label>App name <input id=appname maxlength=31></label><br><label>App ID <input id=appid maxlength=63></label>"
 "<small>Use a unique ID for each app. Reuse that ID for updates to keep its settings.</small></div>"
 "<button id=install>Install / update</button>"
 "<section id=transfer hidden><label id=progress-note role=status aria-live=polite>Waiting</label><progress id=install-progress max=100 value=0 aria-labelledby=progress-note></progress></section>"
-"<p>Community ESP-IDF 5.5.x apps use saved default-NVS contexts (16 KiB). Power off/on to return to the launcher. Firmware needing extra resource/data partitions requires a compatible port. Firmware has full flash access; install trusted apps.</p>"
+"<p>Community ESP-IDF 5.5.x apps can keep private NVS, resources and test/recovery partitions. App-only and standard images use saved default-NVS contexts (16 KiB). Power off/on to return to the launcher. Firmware has full flash access; install trusted apps.</p>"
 "<p>Updating keeps that app's saved data. Uninstalling erases the app and all its saved data after confirmation.</p>"
 "<pre id=status></pre><div id=apps></div><footer>Developed by 9W3SPY | Visit <a href=https://github.com/lim3soft/passport_launcher target=_blank rel=noopener>GitHub</a></footer><script src=/bin-import.js></script><script>const token='";
 static const char script[] =
@@ -48,7 +48,7 @@ static const char script[] =
 "if(!/\\.bin$/i.test(f.name)){status.textContent='Choose a .bin firmware file.';await reportError({code:'invalid'});return;}"
 "try{status.textContent='Checking firmware locally...';let info=PassportBin.inspect(await f.arrayBuffer(),f.name);"
 "if(picker.files[0]!==f)return;inspected=info;inspectedFile=f;identity.hidden=false;appname.value=info.name;appid.value=info.id;appid.readOnly=info.abi===2;"
-"status.textContent=(info.merged?'Full image: extracted app only. ':'App-only image. ')+info.image.length+' bytes. '+(info.abi?'Launcher SDK app.':'Community app: power-cycle to return.');}"
+"status.textContent=(info.merged?'Full image: app and supported private partitions. ':'App-only image. ')+info.image.length+' code bytes; '+info.privateBytes+' private bytes. '+(info.abi?'Launcher SDK app.':'Community app: power-cycle to return.');}"
 "catch(e){status.textContent=e.message;await reportError(e)}};"
 "async function action(path,body,id){let headers={'X-Passport-Token':token};if(id)headers['X-Passport-App-ID']=id;let r=await fetch(path,{method:'POST',headers,body});status.textContent=await r.text();await list();}"
 "function upload(body){return new Promise((resolve,reject)=>{const request=new XMLHttpRequest();request.open('POST','/api/install-bin');request.setRequestHeader('X-Passport-Token',token);request.timeout=330000;"
@@ -251,7 +251,7 @@ static esp_err_t mutation(httpd_req_t *req)
     }
     if (err == ESP_OK) return httpd_resp_sendstr(req, "Done. Select an application on the device.");
     if (err == ESP_ERR_INVALID_VERSION) return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
-        "App SDK/identity mode mismatch. Use the original mode for updates, or delete that app and its settings before changing mode.");
+        "App SDK, identity or private-partition layout changed. Use the same layout for updates, or uninstall the app and its settings first.");
     char message[96];
     snprintf(message, sizeof(message), "Operation failed: %s. No app was launched.", esp_err_to_name(err));
     return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, message);

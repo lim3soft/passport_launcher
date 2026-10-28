@@ -11,6 +11,7 @@
 void bootloader_hooks_include(void) {}
 _Alignas(4) static uint8_t desired[ESP_PARTITION_TABLE_MAX_LEN], previous[ESP_PARTITION_TABLE_MAX_LEN];
 static unsigned entries;
+static passport_package_t resource_package;
 static void entry(uint8_t type,uint8_t subtype,uint32_t offset,uint32_t size,const char *label)
 {
     esp_partition_info_t *p=(esp_partition_info_t *)desired+entries++;
@@ -24,14 +25,30 @@ static void entry(uint8_t type,uint8_t subtype,uint32_t offset,uint32_t size,con
  * The table sector is programmed only when its contents must change. */
 static bool prepare_table(const passport_ticket_t *ticket,bool launch)
 {
+    passport_layout_t layout={0};
+    bool custom=launch && ticket->reserved;
+    if(custom) {
+        if(bootloader_flash_read(ticket->data_offset+PASSPORT_DATA_SIZE,&resource_package,sizeof(resource_package),false)!=ESP_OK ||
+           !passport_package_valid(&resource_package) || !passport_package_layout(&resource_package,&layout) ||
+           passport_package_data_size(&resource_package)!=ticket->reserved || resource_package.image_size>ticket->image_capacity)
+            return false;
+    }
     memset(desired,255,sizeof(desired));entries=0;
-    entry(1,2,0x9000,0x4000,"nvs");entry(1,0,0xd000,0x2000,"otadata");
-    entry(1,1,0xf000,0x1000,"phy_init");entry(0,0,0x10000,0x180000,"factory");
+    bool custom_phy=false;
+    for(unsigned i=0;i<layout.count;i++)if(!strcmp(layout.entries[i].label,"phy_init"))custom_phy=true;
+    if(!custom)entry(1,2,0x9000,0x4000,"nvs");
+    entry(1,0,0xd000,0x2000,"otadata");
+    if(!custom_phy)entry(1,1,0xf000,0x1000,"phy_init");
+    entry(0,0,0x10000,0x180000,"factory");
     entry(1,2,PASSPORT_META_ADDRESS,0x10000,"pos_meta");
     if(launch) {
         entry(0,16,ticket->image_offset,ticket->image_capacity,"active_app");
         char label[]="appdata0";label[7]="0123456789abcdef"[ticket->slot];
         entry(1,2,ticket->data_offset,PASSPORT_DATA_SIZE,label);
+        for(unsigned i=0;i<layout.count;i++) {
+            const passport_resource_t *p=&layout.entries[i];
+            entry(p->type,p->subtype,ticket->data_offset+p->offset,p->size,p->label);
+        }
     }
     uint8_t *marker=desired+entries*sizeof(esp_partition_info_t);
     marker[0]=0xeb;marker[1]=0xeb;

@@ -1,79 +1,198 @@
 {
   "product": "Passport Launcher",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "developer": "9W3SPY",
   "Build": "PASS",
   "Host tests": "PASS",
   "Device tests": "NOT RUN",
-  "requested_fixes": {
-    "1": "Auto start defaults to Last booted app; Startup app selector pins a READY app by stable ID, independent of On/Off; countdown uses actual target",
-    "2": "Main-menu About row has no developer credit; credit remains inside device About",
-    "3": "Nonselectable horizontal separator between installed ROMs and launcher actions",
-    "4": "Your library main heading replaced with bold 22px Passport Launcher branding",
-    "5": "Portal real XHR upload percentage, indeterminate device verification, final-success confirmation and clear failure/timeout states",
-    "6": "QSO legacy-settings advice paragraph removed",
-    "7": "Portal About links to developer GitHub",
-    "8": "Portal footer credits 9W3SPY with GitHub hyperlink"
-  },
+  "changes": [
+    "Generic checked merged partition-table parser; no application-name allowlist",
+    "Factory application offset read from table, including 0x20000",
+    "Private NVS/resource/test-recovery mappings with preserved labels, types, sizes and initial data",
+    "Allocator/preflight/capacity/uninstall cover variable private extents",
+    "Existing default-NVS contexts and original SDK entries preserved",
+    "Bounded PLD1 manifest in existing entry; 32-byte RTC ticket retains size",
+    "Initial resource SHA-256 and per-chunk flash readback; update data retention; full uninstall erasure"
+  ],
   "checks": [
-    "ESP-IDF 5.5.3 complete tools/validate.sh gate, isolated defaults",
-    "10 C ASan/UBSan executables, 24 Python tests and BIN/browser models",
-    "Production default-last/pinned startup, other manual boots, persistence, On/Off, NVS faults and uninstall fallback",
-    "Actual embedded browser script: upload percentage, no success before final response, duplicate guard, HTTP/network/timeout failures, preflight and re-enabled controls",
-    "Native pinned LVGL RGB565 ASan rendering: bold branding, separator, startup app picker/pinned countdown, About and 16-entry library",
-    "Production allocator/installer/context/boot lifecycle and real QSO/Internet Radio image-byte models remain passing; no ESP32 execution",
-    "Verified unchanged bootloader/table, SDK 2 registry layout and update ending before shared storage",
-    "Full OFL font notices retained in offline license bundle; matching debug archive verified"
+    "ESP-IDF 5.5.3 complete firmware build, isolated sdkconfig defaults, merged image and matching ELF archive verified",
+    "11 C ASan/UBSan executables; 24 Python tests; embedded browser UI and BIN integrity models",
+    "Production custom install 210, update 156 and uninstall 10 I/O boundaries, before/after writes and restart/retry",
+    "Bootloader custom-manifest mutation, bounded table entries and torn table I/O repair",
+    "10000 allocator operations with mixed variable private extents and exact byte ownership",
+    "Real QSO Vision, Internet Radio and all three newly supplied community BIN bytes through production host models"
   ],
   "full_image": {
-    "path": "/root/passportos/delivery/Passport-Launcher-0.4.1-update.bin",
-    "bytes": 1608272,
-    "sha256": "05787d8ce269127f2569a5d53e552ff5bca4ca7e107010943efd9e4273a34dab"
+    "path": "/root/passport-launcher-github/delivery/Passport-Launcher-0.4.2-update.bin",
+    "bytes": 1614672,
+    "sha256": "f56177d1824ceb3732dc6b92fca3fc0d6d2828b16e822fa1674b2f9fa9bfce84"
   },
-  "elf_sha256": "04bb2dafa31736a2afcc0bcd564657d9cfe1e9cbf39591cdf4b52aae7112df72",
-  "archive": "/root/passportos/build/firmware/05787d8ce269127f2569a5d53e552ff5bca4ca7e107010943efd9e4273a34dab",
-  "launcher_app_bytes": 1542736,
+  "fresh_image": {
+    "path": "/root/passport-launcher-github/delivery/Passport-Launcher-0.4.2-fresh.bin",
+    "bytes": 8388608,
+    "sha256": "abb2d12dc18704b9e5a8f1d34eab1fe221b9e06fac1c52fff0a91e12d0a086c1"
+  },
+  "elf_sha256": "eac44a88f036ff7fab055ce26bae7db8cf7461c34f8c10e0ab6e04834ecc6194",
+  "archive": "/root/passport-launcher-github/build/firmware/f56177d1824ceb3732dc6b92fca3fc0d6d2828b16e822fa1674b2f9fa9bfce84",
+  "launcher_app_bytes": 1549136,
   "update": {
-    "from": "0.4.0 shared-storage layout",
+    "from": "0.4.0 or 0.4.1 shared-storage layout",
     "offset": "0x0",
-    "image_end_exclusive": "0x188a50",
+    "image_end_exclusive": "0x18a350",
     "shared_pool_start": "0x190000",
     "whole_chip_erase": false,
-    "precondition": "Power-cycle, cancel Auto start and wait for launcher menu to capture the running community app default-NVS snapshot before USB flashing.",
+    "precondition": "Power-cycle, cancel Auto start, wait for launcher menu before USB flashing; reload portal after upgrading.",
     "partition_table_changed": false,
-    "bootloader_changed": false,
-    "registry_ABI_changed": false,
+    "bootloader_changed": true,
+    "registry_struct_size_changed": false,
+    "new_reserved_field_extension": "PLD1",
     "app_private_data_preserved": true,
     "platform_default_NVS_reset_by_merged_prefix": true
   },
-  "autostart": {
-    "default_target": "Last booted app",
-    "fixed_target_stable_id": true,
-    "independent_on_off": true,
-    "countdown_seconds": 5,
-    "any_button_cancels": true,
-    "target_preference_key": "pos_meta/passport/auto_target_v1",
-    "SDK_registry_layout_unchanged": true
-  },
-  "ui": {
-    "lvgl_pool_bytes": 49152,
-    "native_minimum_free_pool_bytes": 9336,
-    "preview_is_device_screenshot": false,
-    "brand_font": "Passport Brand 22 / bold / OFL-1.1"
-  },
+  "community_inputs": [
+    {
+      "file": "badminston score.bin",
+      "fixture": "custom-0.transport",
+      "sha256": "989cb4e5f3813c2c5ae30a939b857f41c089103f6fb1c20f27566b8a5f46e0f4",
+      "application_bytes": 1429488,
+      "private_bytes": 204800,
+      "minimum_allocated_bytes": 1634304,
+      "idf": "v5.5.3-dirty",
+      "partitions": [
+        {
+          "name": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 135168,
+          "bytes": 65536
+        },
+        {
+          "name": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "privateOffset": 200704,
+          "bytes": 4096
+        }
+      ],
+      "host_import": "PASS",
+      "physical_execution": "NOT RUN",
+      "host_production_lifecycle": "PASS"
+    },
+    {
+      "file": "pokemon.bin",
+      "fixture": "custom-1.transport",
+      "sha256": "8b49d5151a9d5f46021218682faef745444e6e9dad27354a5cb9e21098c215f1",
+      "application_bytes": 3229280,
+      "private_bytes": 1507328,
+      "minimum_allocated_bytes": 4739072,
+      "idf": "v5.5.3",
+      "partitions": [
+        {
+          "name": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 135168,
+          "bytes": 24576
+        },
+        {
+          "name": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "privateOffset": 159744,
+          "bytes": 4096
+        },
+        {
+          "name": "cardid",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 163840,
+          "bytes": 16384
+        },
+        {
+          "name": "save_restore",
+          "type": 1,
+          "subtype": 64,
+          "privateOffset": 180224,
+          "bytes": 65536
+        },
+        {
+          "name": "wifi_config",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 245760,
+          "bytes": 24576
+        },
+        {
+          "name": "pokewalk_store",
+          "type": 1,
+          "subtype": 65,
+          "privateOffset": 270336,
+          "bytes": 131072
+        },
+        {
+          "name": "recovery",
+          "type": 0,
+          "subtype": 32,
+          "privateOffset": 458752,
+          "bytes": 1048576
+        }
+      ],
+      "host_import": "PASS",
+      "physical_execution": "NOT RUN",
+      "host_production_lifecycle": "PASS"
+    },
+    {
+      "file": "qiannian-jiazu-v3.4-full.bin",
+      "fixture": "custom-2.transport",
+      "sha256": "fe024e30e40c9656fa7871385803e6b9cc8261f4c8bcca1fa8809bbf8105feba",
+      "application_bytes": 1601136,
+      "private_bytes": 180224,
+      "minimum_allocated_bytes": 1781760,
+      "idf": "v5.5.3",
+      "partitions": [
+        {
+          "name": "nvs",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 135168,
+          "bytes": 24576
+        },
+        {
+          "name": "phy_init",
+          "type": 1,
+          "subtype": 1,
+          "privateOffset": 159744,
+          "bytes": 4096
+        },
+        {
+          "name": "cardid",
+          "type": 1,
+          "subtype": 2,
+          "privateOffset": 163840,
+          "bytes": 16384
+        }
+      ],
+      "host_import": "PASS",
+      "physical_execution": "NOT RUN",
+      "host_production_lifecycle": "PASS"
+    }
+  ],
   "network": {
     "ssid": "Passport Launcher",
     "password": "aipassport",
     "url": "http://192.168.168.1"
   },
-  "developer_github": "https://github.com/lim3soft/passport_launcher",
   "Unverified": [
-    "Physical board startup, selection/persistence and countdown",
-    "Actual Windows browser upload/progress and RF/heap/stack",
-    "App execution, settings retention and electrical power-cut recovery",
-    "GitHub repository availability was not verified; hyperlink uses owner-supplied URL"
+    "ESP32 application execution and source-level hard-coded flash accesses",
+    "Actual board RF/heap/stack, flash wear and electrical power-cut recovery",
+    "App-specific recovery boot chains are not adopted; reset returns to launcher"
   ],
   "flashed": false,
-  "committed": false,
-  "published": false
+  "published": false,
+  "owner_feedback": {
+    "source": "Owner message in this conversation",
+    "reported_result": "0.4.2 is now working",
+    "independent_physical_test": "NOT RUN",
+    "scope": "Owner did not specify individual apps or a complete device acceptance matrix."
+  }
 }

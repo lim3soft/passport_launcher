@@ -216,7 +216,7 @@ void esp_restart(void) {longjmp(restart_jump,1);}
 int64_t esp_timer_get_time(void) {return 1000000;}
 esp_err_t bootloader_flash_unlock(void){return ESP_OK;}
 esp_err_t bootloader_flash_read(size_t address,void *out,size_t size,bool decrypt)
-{assert(address==0x8000&&size==0xc00&&!decrypt);memcpy(out,disk.flash+address,size);return ESP_OK;}
+{assert(address+size<=FLASH_BYTES&&!decrypt);memcpy(out,disk.flash+address,size);return ESP_OK;}
 esp_err_t bootloader_flash_write(size_t address,const void *in,size_t size,bool encrypt)
 {assert(address==0x8000&&size==0xc00&&!encrypt);memcpy(disk.flash+address,in,size);return ESP_OK;}
 esp_err_t bootloader_flash_erase_sector(size_t sector)
@@ -452,5 +452,12 @@ int main(int argc,char **argv)
     launch(0);for(size_t i=0;i<NVS_BYTES;i++)assert(disk.flash[0x9000+i]==0x57);return_to_menu();
     assert(passport_uninstall(0,"community.large")==ESP_OK);launch(1);assert(counter(0)==567);return_to_menu();
     puts("Production 2.5 MiB BIN: streamed install, full SHA, boot selection, context retention and uninstall alongside SDK app: PASS (host model)");
-
+    return 0;
 }
+
+esp_err_t esp_flash_write(void *chip,const void *data,uint32_t address,uint32_t size)
+{assert(!chip&&address>=PASSPORT_POOL_START&&address+size<=PASSPORT_POOL_END);bool f=fault();if(f&&!fail_after_write)return ESP_FAIL;
+ const uint8_t *p=data;for(uint32_t i=0;i<size;i++){assert((disk.flash[address+i]&p[i])==p[i]);disk.flash[address+i]=p[i];}return f?ESP_FAIL:ESP_OK;}
+esp_err_t esp_flash_erase_region(void *chip,uint32_t address,uint32_t size)
+{assert(!chip&&!(address&4095)&&!(size&4095)&&address>=PASSPORT_POOL_START&&address+size<=PASSPORT_POOL_END);bool f=fault();if(f&&!fail_after_write)return ESP_FAIL;
+ memset(disk.flash+address,255,size);return f?ESP_FAIL:ESP_OK;}

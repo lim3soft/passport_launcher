@@ -47,7 +47,7 @@ bool passport_import_message(char *out, size_t size)
     unsigned state=atomic_load(&import_state),notice=state>>24,kib=state&0xffffffu;
     const char *text = notice == IMPORT_READY ? "Space checked. Ready to install." :
         notice == IMPORT_NO_SPACE ? "Not enough usable space.\nUninstall an app first." :
-        notice == IMPORT_LAYOUT ? "Unsupported ROM layout.\nCustom partitions need a port." :
+        notice == IMPORT_LAYOUT ? "Unsupported ROM layout.\nCheck firmware compatibility." :
         notice == IMPORT_INVALID ? "ROM validation failed.\nChoose a compatible BIN." :
         notice == IMPORT_WRITING ? "Installing... keep power on." :
         notice == IMPORT_DONE ? "ROM installed. Hold OK to return." :
@@ -202,6 +202,10 @@ esp_err_t passport_preflight_http(httpd_req_t *req)
     if (p.image_size > PASSPORT_SLOT_SIZE) { note = IMPORT_TOO_LARGE; err = ESP_ERR_INVALID_SIZE; goto done; }
     if (!passport_package_valid(&p)) goto done;
     int slot = passport_install_slot(&registry, &p);
+    if(slot>=0 && registry.slots[slot].state!=PASSPORT_EMPTY &&
+       !passport_package_layout_equal(&p,&registry.slots[slot].package)) {
+        note=IMPORT_LAYOUT;err=ESP_ERR_INVALID_VERSION;goto done;
+    }
     passport_record_t planned;
     if(slot>=0 && !passport_install_plan(&registry,&p,slot,&planned))slot=-1;
     if (slot < 0) { note = IMPORT_NO_SPACE; err = ESP_ERR_NO_MEM; goto done; }
@@ -254,14 +258,18 @@ esp_err_t passport_install_http(httpd_req_t *req)
     uint8_t *buffer = NULL;
     mbedtls_sha256_context sha;
     mbedtls_sha256_init(&sha);
-    if (req->content_len < sizeof(package) + 288 || req->content_len > sizeof(package) + PASSPORT_SLOT_SIZE) {
-        note = req->content_len > sizeof(package) + PASSPORT_SLOT_SIZE ? IMPORT_TOO_LARGE : IMPORT_INVALID;
+    if (req->content_len < sizeof(package) + 288 || req->content_len > sizeof(package) + PASSPORT_POOL_END-PASSPORT_POOL_START) {
+        note = req->content_len > sizeof(package) + PASSPORT_POOL_END-PASSPORT_POOL_START ? IMPORT_TOO_LARGE : IMPORT_INVALID;
         goto done;
     }
     if (receive_exact(req, &package, sizeof(package), deadline) != ESP_OK || !passport_package_valid(&package) ||
-        req->content_len != sizeof(package) + package.image_size) goto done;
+        req->content_len != sizeof(package) + package.image_size + passport_package_data_size(&package) - (passport_package_data_size(&package)>PASSPORT_DATA_SIZE?PASSPORT_RESOURCE_BASE:PASSPORT_DATA_SIZE)) goto done;
     int slot = passport_install_slot(&registry, &package);
     if (slot < 0) { err = ESP_ERR_NO_MEM; note = IMPORT_NO_SPACE; goto done; }
+    if(registry.slots[slot].state!=PASSPORT_EMPTY &&
+       !passport_package_layout_equal(&package,&registry.slots[slot].package)) {
+        err=ESP_ERR_INVALID_VERSION;note=IMPORT_LAYOUT;goto done;
+    }
     if (registry.slots[slot].state != PASSPORT_EMPTY) {
         bool legacy = false;
         err = passport_compat_mode(&registry, slot, &legacy);
@@ -339,6 +347,41 @@ esp_err_t passport_install_http(httpd_req_t *req)
         }
     }
     if (err != ESP_OK) goto done;
+    passport_layout_t layout;
+    if(passport_package_layout(&package,&layout)) {
+        const passport_record_t *record=&registry.slots[slot];
+        bool initialize=!record->data_initialized;
+        uint32_t address=record->data_offset+PASSPORT_RESOURCE_BASE;
+        if(initialize) {
+            err=esp_flash_erase_region(NULL,record->data_offset+PASSPORT_DATA_SIZE,0x1000+layout.payload_size);
+            if(err!=ESP_OK)goto done;
+        }
+        if(mbedtls_sha256_starts(&sha,0)!=0){err=ESP_FAIL;goto done;}
+        for(uint32_t offset=0;offset<layout.payload_size;) {
+            size_t n=layout.payload_size-offset<4096?layout.payload_size-offset:4096;
+            err=receive_exact(req,buffer,n,deadline);if(err!=ESP_OK)goto done;
+            if(mbedtls_sha256_update(&sha,buffer,n)!=0){err=ESP_FAIL;goto done;}
+            if(initialize) {
+                err=esp_flash_write(NULL,buffer,address+offset,n);if(err!=ESP_OK)goto done;
+                uint8_t check[256];
+                for(size_t i=0;i<n;i+=sizeof(check)) {
+                    size_t bytes=n-i<sizeof(check)?n-i:sizeof(check);
+                    err=esp_flash_read(NULL,check,address+offset+i,bytes);
+                    if(err!=ESP_OK || memcmp(check,buffer+i,bytes)){err=ESP_ERR_INVALID_CRC;goto done;}
+                }
+            }
+            offset+=n;taskYIELD();
+        }
+        if(mbedtls_sha256_finish(&sha,digest)!=0 || memcmp(digest,layout.sha256,32)){err=ESP_ERR_INVALID_CRC;goto done;}
+        /* Persist the bounded boot manifest only after complete payload validation.
+         * Updates retain existing private bytes; changing their layout is refused. */
+        uint32_t manifest=record->data_offset+PASSPORT_DATA_SIZE;
+        err=esp_flash_erase_region(NULL,manifest,0x1000);if(err!=ESP_OK)goto done;
+        err=esp_flash_write(NULL,&package,manifest,sizeof(package));if(err!=ESP_OK)goto done;
+        passport_package_t check;
+        err=esp_flash_read(NULL,&check,manifest,sizeof(check));
+        if(err!=ESP_OK || memcmp(&check,&package,sizeof(check))){err=ESP_ERR_INVALID_CRC;goto done;}
+    }
     next = registry;
     if (!passport_install_finish(&next, slot)) { err = ESP_ERR_INVALID_STATE; goto done; }
     err = publish(&next); /* Only READY images can be selected. No automatic boot. */
@@ -375,6 +418,11 @@ static esp_err_t delete_app(unsigned slot, bool erase_private_data, const char *
     char label[] = "appdata0"; label[7] = "0123456789abcdef"[slot];
     err = nvs_flash_erase_partition(label);
     if (err != ESP_OK) goto done;
+    uint32_t data_bytes=passport_package_data_size(&registry.slots[slot].package);
+    if(data_bytes>PASSPORT_DATA_SIZE) {
+        err=esp_flash_erase_region(NULL,registry.slots[slot].data_offset+PASSPORT_DATA_SIZE,data_bytes-PASSPORT_DATA_SIZE);
+        if(err!=ESP_OK)goto done;
+    }
     next = registry;
     memset(&next.slots[slot], 0, sizeof(next.slots[slot]));
     err = publish(&next); /* Reassignment allowed only AFTER successful data erase. */
@@ -486,7 +534,17 @@ esp_err_t passport_launch(unsigned slot)
     err = publish(&next);
     if (err != ESP_OK) goto done;
 
-    if (legacy) {
+    passport_layout_t layout;
+    bool private_layout=passport_package_layout(&registry.slots[slot].package,&layout);
+    if(private_layout) {
+        passport_package_t check;
+        err=esp_flash_read(NULL,&check,registry.slots[slot].data_offset+PASSPORT_DATA_SIZE,sizeof(check));
+        if(err!=ESP_OK || memcmp(&check.reserved,&registry.slots[slot].package.reserved,sizeof(check.reserved)) ||
+           check.image_size!=registry.slots[slot].package.image_size || memcmp(check.sha256,registry.slots[slot].package.sha256,32)) {
+            err=ESP_ERR_INVALID_CRC;goto done;
+        }
+    }
+    if (legacy && !private_layout) {
         err = passport_compat_begin(&registry, slot);
         if (err != ESP_OK) goto done;
     }

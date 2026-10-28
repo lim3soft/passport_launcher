@@ -1,6 +1,6 @@
 {
   "format": "passport-launcher.community-inputs",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "host_import_test": "PASS",
   "machine_code_executed": false,
   "physical_device_tests": "NOT RUN",
@@ -50,6 +50,7 @@
       "physical_execution": "NOT RUN",
       "import": "PASS",
       "application_sha256": "6ab6aec30d4453a663f5de40419de9764c9c3586cae0bced8f58881612563228",
+      "private_bytes": 131072,
       "assigned_id": "community.qso-vision",
       "idf_compatibility": "community ESP-IDF 5.5.x"
     },
@@ -136,8 +137,11 @@
       ],
       "esp_image_checksum_and_sha256": "PASS",
       "physical_execution": "NOT RUN",
-      "import": "BLOCKED",
-      "reason": "Custom cardid/save_restore/wifi_config/pokewalk_store/recovery partitions. Its code can fit the shared pool, but the extra data partitions require a source port."
+      "import": "PASS",
+      "application_sha256": "825c2b28cbce6259738f105eb5baa99bf1a8f710d29cda8515a752c368f74ba7",
+      "private_bytes": 1507328,
+      "assigned_id": "community.pokemon",
+      "idf_compatibility": "community ESP-IDF 5.5.x"
     },
     {
       "file": "Internet-Radio.bin",
@@ -159,6 +163,7 @@
       "physical_execution": "NOT RUN",
       "import": "PASS",
       "application_sha256": "88030672c78ba5cc529fa84934198c12fbd90cd32dc11234ec3d4d6ed2a9b822",
+      "private_bytes": 131072,
       "assigned_id": "community.internet-radio",
       "idf_compatibility": "community ESP-IDF 5.5.x"
     }

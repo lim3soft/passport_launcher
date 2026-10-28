@@ -14,8 +14,8 @@ static void verify(const passport_registry_t *r)
     for(unsigned i=0;i<PASSPORT_SLOTS;i++)if(r->slots[i].state!=PASSPORT_EMPTY) {
         const passport_record_t *a=&r->slots[i];
         for(unsigned n=0;n<a->image_capacity/4096;n++){unsigned j=(a->image_offset-PASSPORT_POOL_START)/4096+n;assert(j<sizeof(occupied)&&!occupied[j]);occupied[j]=1;}
-        for(unsigned n=0;n<PASSPORT_DATA_SIZE/4096;n++){unsigned j=(a->data_offset-PASSPORT_POOL_START)/4096+n;assert(j<sizeof(occupied)&&!occupied[j]);occupied[j]=1;}
-        allocated+=a->image_capacity+PASSPORT_DATA_SIZE;payload+=a->package.image_size;
+        for(unsigned n=0;n<passport_package_data_size(&a->package)/4096;n++){unsigned j=(a->data_offset-PASSPORT_POOL_START)/4096+n;assert(j<sizeof(occupied)&&!occupied[j]);occupied[j]=1;}
+        allocated+=a->image_capacity+passport_package_data_size(&a->package);payload+=a->package.image_size;
     }
     passport_capacity_t c;passport_capacity(r,&c);
     assert(c.total_bytes==sizeof(occupied)*4096&&c.allocated_bytes==allocated&&c.used_image_bytes==payload);
@@ -45,6 +45,11 @@ int main(void)
             if((random&3)==0 && r.slots[slot].state!=PASSPORT_EMPTY){assert(passport_remove(&r,slot));memset(&r.slots[slot],0,sizeof(r.slots[slot]));}
             else {
                 p=package(slot,(random%0x180000)+288);
+                if(slot%3==0) {
+                    passport_layout_t l={.magic=PASSPORT_LAYOUT_MAGIC,.count=1,.payload_size=(slot+3)*4096};
+                    l.entries[0]=(passport_resource_t){.magic=0x50aa,.type=1,.subtype=2,.offset=PASSPORT_RESOURCE_BASE,.size=l.payload_size};
+                    strcpy(l.entries[0].label,"nvs");memcpy(p.reserved,&l,sizeof(l));
+                }
                 int target=passport_install_slot(&r,&p);before=r;
                 if(target>=0 && passport_install_prepare(&r,&p,target))assert(passport_install_finish(&r,target));
                 else assert(!memcmp(&before,&r,sizeof(r)));
@@ -52,5 +57,5 @@ int main(void)
             verify(&r);
         }
     }
-    puts("Shared flash: >2 MiB images, fourth app, private-data stability, exact free bytes, fragmentation, full-pool updates and 10000 random operations: PASS");
+    puts("Shared flash: >2 MiB images, fourth app, private-data stability, exact free bytes, fragmentation, full-pool updates and 10000 mixed variable-private-extent operations: PASS");
 }

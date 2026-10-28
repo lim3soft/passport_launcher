@@ -3,12 +3,53 @@
 
 static bool overlap(uint32_t a,uint32_t n,uint32_t b,uint32_t m)
 { return a<b+m && b<a+n; }
+bool passport_package_layout(const passport_package_t *p,passport_layout_t *out)
+{
+    memcpy(out,p->reserved,sizeof(*out));return out->magic==PASSPORT_LAYOUT_MAGIC;
+}
+uint32_t passport_package_data_size(const passport_package_t *p)
+{
+    passport_layout_t l;
+    return passport_package_layout(p,&l)?PASSPORT_RESOURCE_BASE+l.payload_size:PASSPORT_DATA_SIZE;
+}
+bool passport_package_layout_equal(const passport_package_t *a,const passport_package_t *b)
+{
+    passport_layout_t x,y;bool ax=passport_package_layout(a,&x),by=passport_package_layout(b,&y);
+    return ax==by && (!ax || (x.count==y.count && x.payload_size==y.payload_size && !memcmp(x.entries,y.entries,sizeof(x.entries))));
+}
+static bool layout_valid(const passport_package_t *p)
+{
+    passport_layout_t l;
+    if(!passport_package_layout(p,&l)) {
+        for(unsigned i=0;i<sizeof(p->reserved);i++)if(p->reserved[i])return false;
+        return true;
+    }
+    if(!l.count || l.count>PASSPORT_RESOURCE_COUNT || l.reserved || !l.payload_size ||
+       (l.payload_size&0xfffu) || l.payload_size>PASSPORT_SLOT_SIZE-PASSPORT_RESOURCE_BASE)return false;
+    for(unsigned i=0;i<sizeof(l.padding);i++)if(l.padding[i])return false;
+    unsigned nvs=0;
+    for(unsigned i=0;i<PASSPORT_RESOURCE_COUNT;i++) {
+        const passport_resource_t *e=&l.entries[i];
+        if(i>=l.count) {passport_resource_t zero={0};if(memcmp(e,&zero,sizeof(zero)))return false;continue;}
+        if(e->magic!=0x50aa || e->flags || (e->type!=1 && !(e->type==0 && e->subtype==0x20)) ||
+           e->offset<PASSPORT_RESOURCE_BASE || (e->offset&0xfffu) || !e->size || (e->size&0xfffu) ||
+           e->offset>PASSPORT_RESOURCE_BASE+l.payload_size || e->size>PASSPORT_RESOURCE_BASE+l.payload_size-e->offset ||
+           (e->type==0 && (e->offset&0xffffu)) || !e->label[0] || !memchr(e->label,0,sizeof(e->label)))return false;
+        for(const char *c=e->label;*c;c++)if(!((*c>='a'&&*c<='z')||(*c>='A'&&*c<='Z')||(*c>='0'&&*c<='9')||*c=='_'||*c=='-'))return false;
+        if(!strcmp(e->label,"factory") || !strcmp(e->label,"active_app") || !strcmp(e->label,"pos_meta") ||
+           !strcmp(e->label,"otadata") || !strncmp(e->label,"appdata",7) || (e->type==1 && (e->subtype==0 || e->subtype==4)))return false;
+        if(!strcmp(e->label,"nvs")) {if(e->type!=1 || e->subtype!=2 || e->size<0x3000)return false;nvs++;}
+        if(!strcmp(e->label,"phy_init") && (e->type!=1 || e->subtype!=1 || e->size!=0x1000))return false;
+        for(unsigned j=0;j<i;j++)if(!strcmp(e->label,l.entries[j].label) || overlap(e->offset,e->size,l.entries[j].offset,l.entries[j].size))return false;
+    }
+    return nvs==1;
+}
 static bool overlap_record(const passport_record_t *a,const passport_record_t *b)
 {
     return overlap(a->image_offset,a->image_capacity,b->image_offset,b->image_capacity) ||
-        overlap(a->image_offset,a->image_capacity,b->data_offset,PASSPORT_DATA_SIZE) ||
-        overlap(a->data_offset,PASSPORT_DATA_SIZE,b->image_offset,b->image_capacity) ||
-        overlap(a->data_offset,PASSPORT_DATA_SIZE,b->data_offset,PASSPORT_DATA_SIZE);
+        overlap(a->image_offset,a->image_capacity,b->data_offset,passport_package_data_size(&b->package)) ||
+        overlap(a->data_offset,passport_package_data_size(&a->package),b->image_offset,b->image_capacity) ||
+        overlap(a->data_offset,passport_package_data_size(&a->package),b->data_offset,passport_package_data_size(&b->package));
 }
 bool passport_allocation_valid(uint32_t image,uint32_t size,uint32_t data)
 {
@@ -22,15 +63,15 @@ bool passport_allocation_valid(uint32_t image,uint32_t size,uint32_t data)
 static uint32_t find_space(const passport_registry_t *r,unsigned ignore_image,uint32_t size,
                            uint32_t alignment,uint32_t extra,uint32_t extra_size)
 {
-    uint32_t start=PASSPORT_POOL_START;
+    uint32_t start=(PASSPORT_POOL_START+alignment-1)&~(alignment-1);
     while(start<PASSPORT_POOL_END && size<=PASSPORT_POOL_END-start) {
         uint32_t end=start;
         for(unsigned i=0;i<PASSPORT_SLOTS;i++)if(r->slots[i].state!=PASSPORT_EMPTY) {
             const passport_record_t *a=&r->slots[i];
             if(i!=ignore_image && overlap(start,size,a->image_offset,a->image_capacity) && a->image_offset+a->image_capacity>end)
                 end=a->image_offset+a->image_capacity;
-            if(overlap(start,size,a->data_offset,PASSPORT_DATA_SIZE) && a->data_offset+PASSPORT_DATA_SIZE>end)
-                end=a->data_offset+PASSPORT_DATA_SIZE;
+            if(overlap(start,size,a->data_offset,passport_package_data_size(&a->package)) && a->data_offset+passport_package_data_size(&a->package)>end)
+                end=a->data_offset+passport_package_data_size(&a->package);
         }
         if(extra_size && overlap(start,size,extra,extra_size) && extra+extra_size>end)end=extra+extra_size;
         if(end==start)return start;
@@ -41,11 +82,12 @@ static uint32_t find_space(const passport_registry_t *r,unsigned ignore_image,ui
 bool passport_install_plan(const passport_registry_t *r,const passport_package_t *p,unsigned slot,passport_record_t *out)
 {
     if(!out || slot>=PASSPORT_SLOTS || !passport_registry_valid(r) || !passport_package_valid(p))return false;
+    if(r->slots[slot].state!=PASSPORT_EMPTY && !passport_package_layout_equal(p,&r->slots[slot].package))return false;
     uint32_t size=(p->image_size+0xfffu)&~0xfffu;
     uint32_t image=find_space(r,slot,size,0x10000,0,0);
     if(!image)return false;
     uint32_t data=r->slots[slot].state!=PASSPORT_EMPTY?r->slots[slot].data_offset:
-        find_space(r,slot,PASSPORT_DATA_SIZE,0x1000,image,size);
+        find_space(r,slot,passport_package_data_size(p),passport_package_data_size(p)>PASSPORT_DATA_SIZE?0x10000:0x1000,image,size);
     if(!data)return false;
     *out=(passport_record_t){.package=*p,.state=PASSPORT_INSTALLING,
         .image_offset=image,.image_capacity=size,.data_offset=data,
@@ -57,7 +99,7 @@ void passport_capacity(const passport_registry_t *r,passport_capacity_t *out)
     *out=(passport_capacity_t){.total_bytes=PASSPORT_POOL_END-PASSPORT_POOL_START};
     if(!passport_registry_valid(r))return;
     for(unsigned i=0;i<PASSPORT_SLOTS;i++)if(r->slots[i].state!=PASSPORT_EMPTY) {
-        out->allocated_bytes+=r->slots[i].image_capacity+PASSPORT_DATA_SIZE;
+        out->allocated_bytes+=r->slots[i].image_capacity+passport_package_data_size(&r->slots[i].package);
         out->used_image_bytes+=r->slots[i].package.image_size;
     }
     out->free_bytes=out->total_bytes-out->allocated_bytes;
@@ -97,8 +139,7 @@ bool passport_package_valid(const passport_package_t *p)
         !text_valid(p->app_id, sizeof(p->app_id), true) ||
         !text_valid(p->name, sizeof(p->name), false) ||
         !text_valid(p->version, sizeof(p->version), false)) return false;
-    for (unsigned i = 0; i < sizeof(p->reserved); ++i) if (p->reserved[i]) return false;
-    return true;
+    return layout_valid(p);
 }
 
 void passport_registry_init(passport_registry_t *r)
@@ -123,6 +164,9 @@ bool passport_registry_valid(const passport_registry_t *r)
         if (a->package.abi != PASSPORT_ABI || !passport_package_valid(&a->package) ||
             !passport_allocation_valid(a->image_offset,a->image_capacity,a->data_offset) ||
             a->package.image_size > a->image_capacity || a->data_initialized>1 ||
+            passport_package_data_size(&a->package)>PASSPORT_POOL_END-a->data_offset ||
+            overlap(a->image_offset,a->image_capacity,a->data_offset,passport_package_data_size(&a->package)) ||
+            (passport_package_data_size(&a->package)>PASSPORT_DATA_SIZE && (a->data_offset&0xffffu)) ||
             (a->state==PASSPORT_READY && !a->data_initialized)) return false;
         for (unsigned j = 0; j < i; ++j)
             if (r->slots[j].state != PASSPORT_EMPTY &&
@@ -199,7 +243,8 @@ static uint32_t ticket_checksum(const passport_ticket_t *t)
 passport_ticket_t passport_make_launch_ticket(unsigned slot,const passport_record_t *a)
 {
     passport_ticket_t t={.magic=PASSPORT_TICKET_MAGIC,.slot=slot,.inverse=~slot,
-        .image_offset=a->image_offset,.image_capacity=a->image_capacity,.data_offset=a->data_offset};
+        .image_offset=a->image_offset,.image_capacity=a->image_capacity,.data_offset=a->data_offset,
+        .reserved=passport_package_data_size(&a->package)>PASSPORT_DATA_SIZE?passport_package_data_size(&a->package):0};
     t.checksum=ticket_checksum(&t);return t;
 }
 passport_ticket_t passport_make_ticket(unsigned slot)
@@ -212,6 +257,9 @@ int passport_consume_ticket(passport_ticket_t *ticket,bool software_reset)
 {
     passport_ticket_t old=*ticket;memset(ticket,0,sizeof(*ticket));
     return software_reset && old.magic==PASSPORT_TICKET_MAGIC && old.slot<PASSPORT_SLOTS &&
-        old.inverse==~old.slot && !old.reserved && old.checksum==ticket_checksum(&old) &&
+        old.inverse==~old.slot && (!old.reserved || (old.reserved>PASSPORT_RESOURCE_BASE &&
+        !(old.reserved&0xfffu) && !(old.data_offset&0xffffu) && old.data_offset<PASSPORT_POOL_END &&
+        old.reserved<=PASSPORT_POOL_END-old.data_offset &&
+        !overlap(old.image_offset,old.image_capacity,old.data_offset,old.reserved))) && old.checksum==ticket_checksum(&old) &&
         passport_allocation_valid(old.image_offset,old.image_capacity,old.data_offset) ? (int)old.slot:-1;
 }
